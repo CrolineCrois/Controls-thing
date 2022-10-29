@@ -70,7 +70,7 @@ public class ExampleSubsystem extends SubsystemBase {
 
     if (state == 1) {
       if (distancedeck < highdistdeck) {
-        motorbottom.set(.5);
+        motorbottom.set(-.5);
       } else {
         state = 0;
       }
@@ -78,7 +78,7 @@ public class ExampleSubsystem extends SubsystemBase {
 
     if (state == 2) {
       if (distancelaunch < highdistlaunch) {
-        motorbottom.set(.5);
+        motorbottom.set(-.5);
       } else {
         state = 0;
       }
@@ -91,8 +91,10 @@ public class ExampleSubsystem extends SubsystemBase {
     System.out.println(distancedeck);
 
     if ((buttoncheck) && (distancelaunch >= highdistlaunch)) {
-      motorbottom.set(-.5);
       motorlaunch1.set(-.5);
+    }
+    else {
+      motorlaunch1.set(0);
     }
   }
 
