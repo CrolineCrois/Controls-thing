@@ -4,90 +4,96 @@
 
 package frc.robot.subsystems;
 
+import java.net.CacheRequest;
+
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import edu.wpi.first.wpilibj.Timer;
-
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
+
+import edu.wpi.first.wpilibj.XboxController;
 
 public class ExampleSubsystem extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   public ExampleSubsystem() {
-    motor.restoreFactoryDefaults();
-    motor2.restoreFactoryDefaults();
-    motor.setIdleMode(IdleMode.kCoast);
-    motor2.setIdleMode(IdleMode.kCoast);
-    motor2.follow(motor);
+
+    motorlaunch1.restoreFactoryDefaults();
+    motorlaunch2.restoreFactoryDefaults();
+    motorlaunch1.setIdleMode(IdleMode.kCoast);
+    motorlaunch2.setIdleMode(IdleMode.kCoast);
+    motorbottom.setNeutralMode(NeutralMode.Brake);
+
+    motorlaunch2.follow(motorlaunch1);
   }
 
-  private final CANSparkMax motor = new CANSparkMax(1, MotorType.kBrushless);
-  private final CANSparkMax motor2 = new CANSparkMax(17, MotorType.kBrushless);
+  // motors
+  private final WPI_TalonSRX motorbottom = new WPI_TalonSRX(8);
+  private final CANSparkMax motorlaunch1 = new CANSparkMax(3, MotorType.kBrushless);
+  private final CANSparkMax motorlaunch2 = new CANSparkMax(16, MotorType.kBrushless);
+  // distance sensors
+  private final AnalogPotentiometer potentbottom = new AnalogPotentiometer(0);
+  private final AnalogPotentiometer potentdeck = new AnalogPotentiometer(1);
+  private final AnalogPotentiometer potentlaunch = new AnalogPotentiometer(2);
+  // button
+  private final XboxController controller = new XboxController(0);
+  // Sensor numbers
+  private double distancebottom;
+  private double distancedeck;
+  private double distancelaunch;
+  private double highdistbot = 0.37;
+  private double highdistdeck = 0.30;
+  private double highdistlaunch = 0.123;
+  private int state = 0;
 
-  private final AnalogPotentiometer potent1 = new AnalogPotentiometer(0);
-
-  //private final Timer timer = new Timer();
-
-  //private final XboxController controller = new XboxController(0);
-
-  //private boolean motoron = false;
-
-  //private boolean buttoncheck;
-
-  //private double time;
-
-  private double distance; 
+  // Button Boolean
+  private boolean buttoncheck;
 
   @Override
   public void periodic() {
-    distance = potent1.get();
-    //System.out.print ("Caroline is superior");
-    System.out.print (distance);
+    distancebottom = potentbottom.get();
+    distancedeck = potentdeck.get();
+    distancelaunch = potentlaunch.get();
+    buttoncheck = controller.getAButtonPressed();
 
-    motor.set(1 - distance);
-
-    //buttoncheck = controller.getAButtonPressed();
-
-    // motor.set(controller.getRightTriggerAxis() +
-    /*
-     * controller.getLeftTriggerAxis());
-     * if (buttoncheck) {
-     * if (!motoron) {
-     * motor.set(1);
-     * } else {
-     * motor.set(0);
-     * }
-     * motoron = !motoron;
-     * }
-     */
-    // if (press) motor.set(controller.getRightTriggerAxis() -
-    // controller.getLeftTriggerAxis());
-    // System.out.println(controller.getRightTriggerAxis());
-
-    /*time = timer.get();
-    System.out.print(time);
-
-    if (buttoncheck) {
-      timer.start();
-      timer.reset();
+    if (distancebottom >= highdistbot) {
+      if (distancedeck < highdistdeck) {
+        state = 1;
+      } else if (distancelaunch < highdistlaunch) {
+        state = 2;
+      } 
     }
 
-    if (time <= 4) {
-      motor.set(time / 4);
-    } else if (time <= 6) {
-      motor.set(1);
-    } else if (time <= 10) {
-      motor.set(1 - (time / 4));
+    if (state == 1) {
+      if (distancedeck < highdistdeck) {
+        motorbottom.set(.5);
+      } else {
+        state = 0;
+      }
     }
 
-    else {
-      motor.set(0);
-    }*/
+    if (state == 2) {
+      if (distancelaunch < highdistlaunch) {
+        motorbottom.set(.5);
+      } else {
+        state = 0;
+      }
+    }
 
+    if (state == 0){
+      motorbottom.set(0);
+    }
+
+    System.out.println(distancedeck);
+
+    if ((buttoncheck) && (distancelaunch >= highdistlaunch)) {
+      motorbottom.set(-.5);
+      motorlaunch1.set(-.5);
+    }
   }
 
   @Override
